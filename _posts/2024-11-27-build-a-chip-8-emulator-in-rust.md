@@ -5,13 +5,13 @@ date: 2024-11-27
 categories: [Project]
 tags: [rust, emulator]
 ---
-In this article, I'll walk you through the design and implementation of my Chip8 emulator written in Rust. Chip8 is an interpreted programming language developed in the 1970s for an early 8-bit microprocessor, and building an emulator for it can be a fun and insightful project. By the end of this article, you should have a good understanding of how the emulator is structured and how each part works together.
+In this article, I'll walk you through the design and implementation of my Chip8 emulator written in Rust.
 
 ---
 
 ## Overview
 
-The Chip8 emulator that I built is designed to run Chip8 programs, or "ROMs," on modern hardware. The emulator processes the binary instructions of a Chip8 program, updates the state of the virtual machine (VM), and renders the output to a display. It also handles input from the user, such as keyboard presses.
+Chip8 is an interpreted programming language developed in the 1970s for an early 8-bit microprocessor. This emulator is designed to run Chip8 programs ("ROMs") on modern hardwares, it does this by processing the binary instructions of a Chip8 program, updates the state of the virtual machine (VM), and renders the output to a display (using `ratatui`).
 
 ---
 
