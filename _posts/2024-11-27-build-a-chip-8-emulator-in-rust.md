@@ -2,10 +2,10 @@
 layout: post
 title: Building a Chip8 Emulator in Rust
 date: 2024-11-27
-categories: [Project]
+categories: [Projects]
 tags: [rust, emulator]
 ---
-In this article, I'll walk you through the design and implementation of my Chip8 emulator written in Rust.
+In this article, we will walk through the design and implementation of my Chip8 emulator written in Rust.
 
 ---
 

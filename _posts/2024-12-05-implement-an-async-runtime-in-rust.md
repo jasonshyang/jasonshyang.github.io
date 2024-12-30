@@ -2,7 +2,7 @@
 layout: post
 title: Implementing an Async Runtime in Rust
 date: 2024-12-05
-categories: [Project]
+categories: [Explorations]
 tags: [rust, async]
 ---
 In this article, we will walk through the design and implementation of my manual async runtime written in Rust.
