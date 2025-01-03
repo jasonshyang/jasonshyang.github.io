@@ -5,7 +5,7 @@ date: 2025-01-01
 categories: [Concepts]
 tags: [rust, generics]
 ---
-This article provides a practical introduction to *lifetime specifiers* in Rust Programming language. We will firstly quickly cover what *lifetime* is, and then dive into the usage of *lifetime specifiers*. The goal is to better understand why we sometimes get `error[E0106]: missing lifetime specifier`, what is a `lifetime specifier`, why it is important, when and use to use it, and what a `'static` lifetime is.
+This article provides a practical introduction to *lifetime specifiers* in Rust Programming language. We will first quickly cover what *lifetime* is, and then dive into the usage of *lifetime specifiers*. The goal is to better understand the concept of lifetime and lifetime specifiers.
 
 ---
 
