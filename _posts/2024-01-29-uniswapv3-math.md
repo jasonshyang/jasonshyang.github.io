@@ -47,7 +47,7 @@ Let's first look at how the Uniswap team explains this:
 > Specifically, a position only needs to hold enough of asset X to cover price movement to its upper bound, because upwards price movement corresponds to depletion of the X reserves
 
 Figure 2 in the Whitepaper provides a virtualization of the two curves
-![img](../assets/img/posts/uniswapV3.png)
+![img](/assets/img/posts/uniswapV3.png)
 
 Here we have two curves:
 - *Virtual Reserves*: $x_{vir} * y_{vir} = L^2$
