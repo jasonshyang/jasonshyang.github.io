@@ -113,35 +113,43 @@ $(offset_0) * (y_{real} + offset_1) = L^2$
 
 Using the definition of L and p above, we can derive:
 
-$
-x_{vir} = y_{vir} / p_b \\
-x_{vir} = L^2 / y_{vir} \\
-y_{vir} / p_b = L^2 / y_{vir} \\
-y_{vir}^2 = L^2 * p_b \\
-y_{vir} = L * \sqrt{p_b}$
+$x_{vir} = y_{vir} / p_b$
+
+$x_{vir} = L^2 / y_{vir}$
+
+$y_{vir} / p_b = L^2 / y_{vir}$
+
+$y_{vir}^2 = L^2 * p_b$
+
+$y_{vir} = L * \sqrt{p_b}$
 
 We also know: $y_{real} + offset_1 = y_{vir}$
 
 If we plug these into our liquidity curve above:
 
-$
-(offset_0) * (y_{real} + offset_1) = L^2 \\
-(offset_0) * y_{vir} = L^2 \\
-(offset_0) * L * \sqrt{p_b} = L^2 \\
-offset_0 = L / \sqrt{p_b}
-$
+$(offset_0) * (y_{real} + offset_1) = L^2$
+
+$(offset_0) * y_{vir} = L^2$
+
+$(offset_0) * L * \sqrt{p_b} = L^2$
+
+$offset_0 = L / \sqrt{p_b}$
 
 We can do the same for $offset_1$ where we make $y_{real}=0$ and we know price will be $p=p_a$ as we run out of token1 reserves, so our price should hit our lower range:
 
-$
-y_{vir} = x_{vir} * p_a \\
-y_{vir} = L^2 / x_{vir} \\
-x_{vir} * p_a = L^2 / x_{vir} \\
-x_{vir} = L / \sqrt{p_a} \\
-offset_1 * x_{vir} = L^2 \\
-offset_1 * L / \sqrt{p_a} = L^2 \\
-offset_1 = L * \sqrt{p_a}
-$
+$y_{vir} = x_{vir} * p_a$
+
+$y_{vir} = L^2 / x_{vir}$
+
+$x_{vir} * p_a = L^2 / x_{vir}$
+
+$x_{vir} = L / \sqrt{p_a}$
+
+$offset_1 * x_{vir} = L^2$
+
+$offset_1 * L / \sqrt{p_a} = L^2$
+
+$offset_1 = L * \sqrt{p_a}$
 
 Now we can plug our offset0 and offset1 back to our formula:
 
@@ -215,25 +223,29 @@ $(x_{real} + L / \sqrt{p_b}) * (y_{real} + L * \sqrt{p_a}) = L^2$
 
 Because we know there is no token1 reserves, so $y_{real} = 0$, and we can derive the following:
 
-$
-(x_{real} + L / \sqrt{p_b}) * L * \sqrt{p_a} = L^2 \\
-(x_{real} + L / \sqrt{p_b}) * \sqrt{p_a} = L \\
-x_{real} = L / \sqrt{p_a} - L / \sqrt{p_b} \\
-x_{real} = L * (1 / \sqrt{p_a} - 1 / \sqrt{p_b}) \\
-\Delta x_{real} = \Delta L * (1 / \sqrt{p_a} - 1 / \sqrt{p_b})
-$
+$(x_{real} + L / \sqrt{p_b}) * L * \sqrt{p_a} = L^2$
+
+$(x_{real} + L / \sqrt{p_b}) * \sqrt{p_a} = L$
+
+$x_{real} = L / \sqrt{p_a} - L / \sqrt{p_b}$
+
+$x_{real} = L * (1 / \sqrt{p_a} - 1 / \sqrt{p_b})$
+
+$\Delta x_{real} = \Delta L * (1 / \sqrt{p_a} - 1 / \sqrt{p_b})$
 
 **2. If $P \geq P_b$:**
 
 We can use the exact same thought process to do this part:
 
-$
-\Delta x_{real} = 0 \\
-L / \sqrt{p_b} * (y_{real} + L * \sqrt{p_a}) = L^2 \\
-y_{real} = L * \sqrt{p_b} - L * \sqrt{p_a} \\
-y_{real} = L (\sqrt{p_b} - \sqrt{p_a}) \\
-\Delta y_{real} = \Delta L (\sqrt{p_b} - \sqrt{p_a})
-$
+$\Delta x_{real} = 0$
+
+$L / \sqrt{p_b} * (y_{real} + L * \sqrt{p_a}) = L^2$
+
+$y_{real} = L * \sqrt{p_b} - L * \sqrt{p_a}$
+
+$y_{real} = L (\sqrt{p_b} - \sqrt{p_a})$
+
+$\Delta y_{real} = \Delta L (\sqrt{p_b} - \sqrt{p_a})$
 
 Ok so far this is straightforward!
 
@@ -256,11 +268,11 @@ liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSu
 
 Building on this property of a constant price when providing liquidity, we can now start deriving this:
 
-$
-x_{vir} * y_{vir} = L^2 \\
-P = y_{vir} / x_{vir} \\
-y_{vir} = L * \sqrt{P} \\
-$
+$x_{vir} * y_{vir} = L^2$
+
+$P = y_{vir} / x_{vir}$
+
+$y_{vir} = L * \sqrt{P}$
 
 And we also know:
 
@@ -268,10 +280,9 @@ $y_{vir} = y_{real} + L * \sqrt{p_a}$
 
 Now we can connect them together:
 
-$
-L * \sqrt{P} = y_{real} + L * \sqrt{p_a} \\
-y_{real} = L * (\sqrt{P} - \sqrt{p_a}) \\
-$
+$L * \sqrt{P} = y_{real} + L * \sqrt{p_a}$
+
+$y_{real} = L * (\sqrt{P} - \sqrt{p_a})$
 
 Because we know P is a constant here, we have:
 
