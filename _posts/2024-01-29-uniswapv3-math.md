@@ -29,11 +29,12 @@ The V3 Whitepaper calls this the 'defining idea of Uniswap V3', as many of the V
 ### What does 'provide liquidity across (0, ∞)' mean?
 Before we dive into V3, let's first understand this statement:
 > earlier versions were designed to provide liquidity across the entire price range (0, ∞).
+
 We might wonder what does providing liquidity across entire price range really means.
 
 V2 liquidity model is very simple, using a **Constant Product Formula** $x * y = k$. While this is simple to implement, it implicitly means X (the reserve of token0) and Y (the reserve of token1) can take any non-zero numbers, and we know that $Y/X$ is the price, so it means the price can range from (0, ∞).
 
-What this really means is, we can trade at any price point with a V2 pool, if we start from $Y/X=1$, we could keep swapping in token0 (so X increases), and get less and less token1 back (as price increases), and do this in an infinite loop.
+What this really means is, we can trade at any price point with a V2 pool, if we start from $Y/X=1$, we could keep swapping in token0 (so X increases), and get less and less token1 back (as price drops), and do this in an infinite loop.
 
 While this could make sense for trading some of the extremely volatile pairs, it certainly does not make sense for majority of pairs.
 
