@@ -14,10 +14,10 @@ In this article, we will walk through the design and implementation of a flexibl
 In this project [run-task](https://github.com/jasonshyang/run-task), I set out to build a concurrent task runner that can distribute the workloads efficiently while maintaining type safety and flexibility.
 
 My goal is to design a library that:
-- can continuously run data tasks with any input/output data types, at a specified interval
+- can run data tasks with **any input/output** data types, **repeatedly** at a specified interval
   - such as running timeseries analysis, pre-processing data, forming an analytic pipeline
-- can run these tasks concurrently and efficiently
-- allow update of the underlying input data while running the tasks while still providing memory safety
+- can run these tasks **concurrently** and **efficiently**
+- **allow update** of the underlying input data while running the tasks, **without memory safety issues**
 
 The solution centers around two key pillars: **generics** for compile-time polymorphism, **tokio runtime** for concurrent processing.
 
@@ -54,11 +54,11 @@ The `name()` method provides a human-readable identifier for the task, which is 
 
 I choose to make the `run()` method `sync` instead of `async` for the following reasons:
 - the tasks should be computational activities (e.g. aggregating data, running algo)
-- the tasks should not involve long running I/O, making the `run` a sync method conveys the message to the user
-- the `Runner` needs to consolidate all the `Runnable` tasks before moving to the next interval, allowing task to `await` can lead to deadlocks
+- the tasks should not involve long running operations (such as file I/O), making the `run` a sync method conveys the message to the user
+- the `Runner` needs to consolidate all the `Runnable` tasks before moving to the next interval, if we allow task to `await`, the `Runner` can be blocked for generating the next interval
 
 ### `Worker` struct
-The `Worker` struct wraps a `Runnable` task and a `TaskContext`, which is responsible for continuously running tasks in a dedicated `tokio::spawn`.
+The `Worker` struct wraps a `Runnable` task and a `TaskContext`, which is responsible for running the `Runnable` in a dedicated `tokio::spawn` task.
 
 ```rust
 pub struct Worker<Input, Output> {
@@ -67,8 +67,8 @@ pub struct Worker<Input, Output> {
 }
 ```
 
-Here I choose to use dynamic dispatch on `task` for the following reasons:
-- the `Runner` only instantiates the `Runnable` tasks at the beginning, considering we are interested in running these tasks repeatedly over a long period of time, the overhead of dynamic dispatch is amortized to be fairly minimum
+I choose to use dynamic dispatch on `task` for the following reasons:
+- the `Runner` only instantiates the `Runnable` tasks at the beginning, considering we are interested in running these tasks repeatedly over a long period of time, the overhead of dynamic dispatch is amortized to be very minimum
 - if we use generics here, given each `Worker` will have its own task, we will increase the binary size (as Rust will need to implement concrete `Worker` for each generics) for very minimum performance gain
 
 The `Worker` struct provides a `run()` method to orchestrates the task execution.
@@ -114,9 +114,9 @@ The `Worker` struct provides a `run()` method to orchestrates the task execution
 - **Timeout handling**: added timeout to avoid deadlock while acquiring the read lock on `ctx.data`
 
 To cover the rationale for a few design choices:
-- The `shutdown` signal is not sent via the `self.ctx.receiver` for faster shutdown response (if the `Worker` is blocked on reading, the shutdown signal will not be received)
+- The `shutdown` signal is sent via a dedicated channel instead of the `self.ctx.receiver` for faster shutdown response (if the `Worker` is blocked on reading, the shutdown signal will not be received).
 - Using `broadcast` channel instead of `mpsc` channel as each `Worker` is running in a separate spawned `tokio` task, so the signal is going from the central `Runner` to distributed `Worker`s, hence it is single producer multi consumer, and a `broadcast` channel is appropriate here.
-- Setting timeout on `ctx.data.read()` as this attempts to acquire the read lock. If the user acquired write lock on the underlying data on an operation requiring results from the `Runner`, this will create deadlock, and the timeout will help prevent this and surface the error.
+- Setting timeout on `ctx.data.read()` avoids potential deadlock. If the user acquires write lock on the underlying data on an operation depending on results from the `Runner`, this will create deadlock. The timeout here helps prevent this and surfaces the error.
 
 ## Modelling Contexts
 
@@ -158,13 +158,13 @@ The builder struct provides the following methods:
 - `with_tasks` plugs in multiple tasks
 - `with_interval` sets the task running intervals
 
-The builder struct provides several default settings, as long as a `Runnable` task is provided, the caller can instantiate a `Context` by calling `build()`
-- if `data` is not provided, a default value is created, wrapped in `Arc` and `RwLock`, and a pointer is returned to the caller after calling `build()`
-- `config` and `interval` both have default values
+The builder struct provides several default settings for ease of use. As long as a `Runnable` task is provided, the caller can create a `Context` with the `ContextBuilder` by simply calling `with_task(task).build()`:
+- if `data` is not provided, a default value will be created and wrapped in `Arc` and `RwLock`. A pointer will be returned to the caller after calling `build()` to be used for updating the data afterward.
+- `config` and `interval` both have default values, so if not set, they will take the default value.
 
-The caller will get back an instance of `Context`, a `Receiver` for receiving the consolidated data, and a pointer to the shared data.
+The caller will get back an instance of `Context`, a `Receiver` for receiving the consolidated data, and a pointer to the shared data (this can be ignored if the `data` was provided while building the context).
 
-While this should cover majority of use case, the `Context` struct itself still provides a public `new` method mainly for use case where the consolidated data is required to be sent to a predefined channel.
+Note: while the builder here should cover majority of use cases, the `Context` struct itself still provides a public `new` method mainly for use case where the consolidated data is required to be sent to a predefined channel.
 
 ### `DataSet` struct
 
@@ -387,7 +387,7 @@ impl Runnable<TimeSeries, FeatureResult> for FeatureTask2 {
 ```
 
 ### Step 4: Set Up the Pipeline
-Next we will set up the pipeline using the `ContextBuilder` and `Runner`.
+Now we can set up the pipeline using the `ContextBuilder` and `Runner`.
 
 ```rust
 async fn run_pipeline() -> Result<(), Box<dyn Error>> {
@@ -452,3 +452,10 @@ async fn run_pipeline() -> Result<(), Box<dyn Error>> {
     // ..
 }
 ```
+
+### Step 5: Run the Pipeline
+All we left to do is to call the `run_pipeline()`, and it will repeatedly do the following things:
+- Ingest data to `raw_time_series`
+- Run Preprocessor tasks every 10 seconds, and write the result to `time_series`
+- Run Feature Extraction tasks every 10 seconds using `time_series`
+- ...  we can connect more `Runner`s after this to distill the data progressively
