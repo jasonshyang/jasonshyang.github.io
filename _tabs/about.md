@@ -5,9 +5,9 @@ order: 4
 ---
 
 # 👋 Hi there 
-I have over a decade of experience as a product developer in the financial services industry. Throughout my career, I’ve been deeply passionate about technology and have worked closely with software developers, which fueled my aspiration to transition into software development. 
+I'm a software developer based in the UK with over a decade of experience in product development within the financial services industry. My background in consumer lending, financial operations, and product strategy gives me a unique perspective when it comes to building impactful, scalable, and secure software systems.
 
-In April 2024, I began my journey into software development, combining my extensive domain knowledge with my enthusiasm for building impactful solutions. I’m excited to grow in this field and contribute to creating innovative software.
+In April 2024, I began my journey into software development, exactly one year later in April 2025, I have made the transition into a fulltime Rust developer role, turning a long-standing passion into a profession.
 
 ---
 
@@ -23,7 +23,12 @@ In April 2024, I began my journey into software development, combining my extens
 ---
 
 ## 💼 What I Do
-I bring together a unique blend of expertise in financial services and software development to create impactful solutions. Here's how I make a difference:
+I build software with a deep understanding of both the technology and the business behind it. My cross-functional background allows me to develop systems that are technically sound and strategically aligned.
+
+### Software Development
+- **Rust:** I build systems in Rust with a focus on safety and performance.
+- **Solana:** I specialize in writing efficient, secure, and scalable Solana Programs.
+- **Low Latency:** I optimize system performance for speed, efficiency, and reliability.
 
 ### Financial Services Expertise
 - **Product Development:** I design and implement customer-centric financial products that deliver exceptional user experiences.
@@ -32,10 +37,6 @@ I bring together a unique blend of expertise in financial services and software 
 - **Risk Management:** I establish robust frameworks to manage operational, financial, and system risks effectively.  
 - **Consumer Lending Expert:** I have extensive experience in consumer lending products, spanning origination, account management, and collections, with a deep understanding of product, legal, and regulatory requirements.
 
-
-### Software Development
-- **Languages**: Rust, Python, C#
-- **Technologies**: Postgres, Django, Unity, Solana Smart Contracts
 
 ---
 
@@ -54,14 +55,18 @@ I believe my unique value lies in combining deep financial services domain knowl
 ---
 
 ## 📄 Resume
-Over the course of my career so far, I’ve cultivated a strong track record in product development, business management, and customer-centric design. My experience spans 10+ years, including roles at JP Morgan Chase and HSBC Group, where I worked in regional and global capacities across China, Asia Pacific, and the UK headquarters.
+Over the course of my Product / Business career, I’ve cultivated a strong track record in product development, business management, and customer-centric design. My experience spans 10+ years, including roles at JP Morgan Chase and HSBC Group, where I worked in regional and global capacities across China, Asia Pacific, and the UK headquarters.
+
+### Solstice Labs
+**Senior Engineer** (Apr 2025 - Present, Remote)
+A new start ... 😊
 
 ### JP Morgan Chase  
-**Senior VP Product Developer** (Dec 2022 – Present, London)  
+**Senior VP Product Developer** (Dec 2022 – Apr 2025, London)  
 - Led product development with a team of 30 engineers to build a retail banking platform.  
 - Designed core product logic for a scalable credit card system adhering to UK consumer credit regulations and supporting multiple jurisdictions.  
 - Architected payment handling logic for a credit card payment processing system, integrating UK Faster Payments Service, Direct Debit, and Card Payment.  
-- Developed customer-centric user journeys to address complex scenarios like disputes and closures.  
+- Developed customer-centric user journeys to address complex scenarios like disputes, closures and debt collections.  
 - Established a comprehensive product risk control framework for monitoring system performance, exceptions, and customer outcomes.
 
 ### HSBC  
