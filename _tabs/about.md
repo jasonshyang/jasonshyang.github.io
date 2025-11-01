@@ -59,7 +59,8 @@ Over the course of my Product / Business career, I’ve cultivated a strong trac
 
 ### Solstice Labs
 **Senior Engineer** (Apr 2025 - Present, Remote)
-A new start ... 😊
+- Led the design and development of Solana programs and protocols, including stablecoin, staking, and various utility programs. 
+- Designed and implemented monitoring services to ensure protocol security, reliability, and performance optimization.
 
 ### JP Morgan Chase  
 **Senior VP Product Developer** (Dec 2022 – Apr 2025, London)  
