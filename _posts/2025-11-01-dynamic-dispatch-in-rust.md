@@ -111,7 +111,7 @@ All 4 pairs look quite similar, but only one of each is object safe - we can onl
 
 The rules for *object safe* are:
 - All its methods can be called on a `dyn Trait` reference
-- It does not use generic methods `impl Fn()` or `<T: Fn()>`
+- It does not use generic methods, such as `impl Fn()` or `<T: Fn()>`
 - It does not require `Self: Sized`
 
 Let's go through one by one.
@@ -151,7 +151,7 @@ error: the `foo` method cannot be invoked on a trait object
 
 But notice that we can still construct a `Box<dyn Foo>`, just that the `foo()` method is not accessible. This is extremely useful, as it's not uncommon to have methods in a trait that are not object safe, but there are also methods that are actually object safe, and we are fine for using only those method via a trait object (and use the other methods via generics).
 
-**2. It does not use generic methods `impl Fn()` or `<T: Fn()>`**
+**2. It does not use generic methods**
 
 The second rule is a bit harder to understand, you may wonder why generics are not allowed. This is because the compiler will do its monomorphization magic for generic functions, turning them into concrete implementations. But at compile time we don't know how this method will be called - we don't know what `Fn()` will be invoked because we don't know exactly which type that implements `Foo5` will get called here at compile time.
 
