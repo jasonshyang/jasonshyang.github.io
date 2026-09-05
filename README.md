@@ -63,8 +63,37 @@ public/         Files copied verbatim (favicon, robots.txt)
 
 ## Deployment
 
-`.github/workflows/deploy.yml` type-checks, builds and publishes `dist/` with the official GitHub
-Pages actions. The repository's Pages source must be set to **GitHub Actions**.
+The site is hosted at **https://jasonshyang.github.io/** from the
+[`jasonshyang/jasonshyang.github.io`](https://github.com/jasonshyang/jasonshyang.github.io) repository.
+It uses the account's root Pages URL, so no `base` path or custom-domain `CNAME` file is needed.
+
+In the repository's **Settings → Pages → Build and deployment**, set **Source** to
+**GitHub Actions**. The workflow uses GitHub's built-in token; no deployment secrets or separate
+`gh-pages` branch are required.
+
+`.github/workflows/deploy.yml` checks the Pages configuration, installs the pinned pnpm dependencies,
+type-checks, checks formatting, builds and publishes `dist/` with the official GitHub Pages actions.
+Every push to `main` deploys automatically. To redeploy the current version, open **Actions → Deploy
+to GitHub Pages → Run workflow**. In-progress deployments are allowed to finish before the next one
+starts.
+
+For routine updates:
+
+```sh
+pnpm check
+pnpm format:check
+pnpm build
+git add .
+git commit -m "Update site"
+git push origin main
+```
+
+Only source files are committed; `node_modules/`, `.astro/` and `dist/` stay local. See the
+[Astro GitHub Pages guide](https://docs.astro.build/en/guides/deploy/github/) for hosting details.
+
+Keep `public/sw.min.js` at its existing URL. It retires the previous site's service worker and
+clears its `chirpy-` caches so returning visitors receive the new pages. The new site does not
+register a service worker or cache pages for offline use.
 
 ## Licence
 
