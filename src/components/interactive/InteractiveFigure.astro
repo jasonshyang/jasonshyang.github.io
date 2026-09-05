@@ -1,0 +1,26 @@
+---
+import '../../styles/interactive.css';
+interface Props {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+  caption: string;
+}
+const { id, number, title, description, caption } = Astro.props;
+---
+
+<figure class="interactive-figure" id={id} aria-labelledby={`${id}-title`}>
+  <header class="interactive-heading">
+    <div class="interactive-kicker"><span>{number}</span> Explore the mechanism</div>
+    <h3 id={`${id}-title`}>{title}</h3>
+    <p>{description}</p>
+  </header>
+  <div class="interactive-body"><slot /></div>
+  <figcaption>{caption}</figcaption>
+  <noscript
+    ><p class="interactive-noscript">
+      This is the starting example. Enable JavaScript to adjust its controls.
+    </p></noscript
+  >
+</figure>

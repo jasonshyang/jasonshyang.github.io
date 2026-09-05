@@ -39,6 +39,9 @@ jobs:
       - name: Type-check
         run: pnpm check
 
+      - name: Test interactive models
+        run: pnpm test
+
       - name: Check formatting
         run: pnpm format:check
 

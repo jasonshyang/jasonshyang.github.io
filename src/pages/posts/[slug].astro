@@ -22,7 +22,7 @@ interface Props {
 
 const { post, posts } = Astro.props;
 const { Content, headings } = await render(post);
-const { title, description, date, updated, tags, kind, math } = post.data;
+const { title, description, date, updated, tags, kind, math, draft } = post.data;
 const toc = headings.filter((heading) => heading.depth === 2);
 const { newer, older } = neighbours(post, posts);
 ---
@@ -35,13 +35,17 @@ const { newer, older } = neighbours(post, posts);
   modifiedTime={updated}
   tags={tags}
 >
-  <Fragment slot="head">{math && <link rel="stylesheet" href={katexStylesheet} />}</Fragment>
+  <Fragment slot="head">
+    {math && <link rel="stylesheet" href={katexStylesheet} />}
+    {draft && <meta name="robots" content="noindex, nofollow" />}
+  </Fragment>
 
   <main id="main-content" class="page container wide post-page" tabindex="-1">
     <div class="reading-progress" aria-hidden="true" data-reading-progress></div>
     <a class="back-link" href="/posts/">← All writing</a>
 
     <header class="post-header">
+      {draft && <span class="pill">Draft · local preview</span>}
       <div class="eyebrow">{kind}</div>
       <h1 class="display">{title}</h1>
       <p>{description}</p>

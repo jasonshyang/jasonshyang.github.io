@@ -1,0 +1,144 @@
+---
+import InteractiveFigure from '../interactive/InteractiveFigure.astro';
+import { marketConditions } from '../../lib/tranching/model';
+const { id = 'tranche-lifecycle' } = Astro.props;
+---
+
+<InteractiveFigure
+  id={id}
+  number="04"
+  title="Risk controls and lifecycle are separate."
+  description="Change the market conditions, then try the operator actions. A recovery can lift restrictions; it cannot reverse an unwind."
+  caption="Qualitative conditions illustrate the controls without specifying risk thresholds. Wind Down follows completed liquidation and accounting. Yield allocation remains an operational choice."
+>
+  <tranche-lifecycle>
+    <div class="interactive-controls">
+      <div class="interactive-toolbar" role="group" aria-label="Underlying market conditions">
+        {
+          Object.entries(marketConditions).map(([key, label]) => (
+            <button type="button" data-condition={key} aria-pressed={key === 'normal'}>
+              {label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <p class="interactive-assumption">
+      Each strategy defines its own risk settings. This example shows the resulting conditions,
+      without modelling their calibration.
+    </p>
+    <div class="lifecycle-track" aria-label="Strategy lifecycle">
+      <div data-state="operating" aria-current="step"><small>01 · ACTIVE</small>Operating</div>
+      <div data-state="liquidating"><small>02 · IRREVERSIBLE</small>Liquidating</div>
+      <div data-state="wind-down"><small>03 · SETTLED</small>Wind Down</div>
+    </div>
+    <div class="market-band" data-band="normal">
+      <span>Market conditions</span><strong data-value="band">Normal</strong>
+    </div>
+    <div class="permission-list">
+      <div class="permission-row">
+        <span>Mint senior or junior tokens</span><strong data-permission="mint" data-allowed="true"
+          >Available</strong
+        >
+      </div>
+      <div class="permission-row">
+        <span>Request senior redemption</span><strong
+          data-permission="seniorRequest"
+          data-allowed="true">Available</strong
+        >
+      </div>
+      <div class="permission-row">
+        <span>Join a junior redemption batch</span><strong
+          data-permission="juniorBatch"
+          data-allowed="true">Available</strong
+        >
+      </div>
+      <div class="permission-row">
+        <span>Redeem claims after Wind Down</span><strong
+          data-permission="remainingClaims"
+          data-allowed="false">Not in Wind Down</strong
+        >
+      </div>
+    </div>
+    <div class="interactive-controls">
+      <div class="interactive-toolbar" role="group" aria-label="Simulated operator actions">
+        <button type="button" data-start>Start liquidation</button>
+        <button type="button" data-complete disabled>Complete unwind &amp; accounting</button>
+        <button type="button" class="reset-control" data-reset>Reset example</button>
+      </div>
+    </div>
+    <p class="interactive-note" role="status" data-value="note">
+      The strategy is operating normally. Market stress changes the available actions; only an
+      explicit operator action starts liquidation.
+    </p>
+    <p class="interactive-assumption">
+      These rows describe new activity. A withdrawal from already-settled escrow is a separate
+      action, as the redemption example shows. Other program controls are omitted.
+    </p>
+  </tranche-lifecycle>
+</InteractiveFigure>
+<script>
+  import { InteractiveElement } from '../../lib/interactive/element';
+  import { permissions, type Lifecycle, type MarketCondition } from '../../lib/tranching/model';
+  class LifecycleExplorer extends InteractiveElement {
+    private lifecycle: Lifecycle = 'operating';
+    private condition: MarketCondition = 'normal';
+    protected setup() {
+      this.listen('[data-condition]', 'click', (event) => {
+        this.condition = (event.currentTarget as HTMLElement).dataset.condition as MarketCondition;
+        this.render();
+      });
+      this.listen('[data-start]', 'click', () => {
+        if (this.lifecycle === 'operating') this.lifecycle = 'liquidating';
+        this.render();
+      });
+      this.listen('[data-complete]', 'click', () => {
+        if (this.lifecycle === 'liquidating') this.lifecycle = 'wind-down';
+        this.render();
+      });
+      this.listen('[data-reset]', 'click', () => {
+        this.lifecycle = 'operating';
+        this.condition = 'normal';
+        this.render();
+      });
+    }
+    private render() {
+      const allowed = permissions(this.condition, this.lifecycle);
+      this.pressed('[data-condition]', this.condition, 'data-condition');
+      this.text('band', allowed.band);
+      this.get<HTMLElement>('[data-band]').dataset.band =
+        this.condition === 'severe' ? 'blocked' : this.condition;
+      this.querySelectorAll('[data-state]').forEach((element) => {
+        if (element.getAttribute('data-state') === this.lifecycle)
+          element.setAttribute('aria-current', 'step');
+        else element.removeAttribute('aria-current');
+      });
+      for (const key of ['mint', 'seniorRequest', 'juniorBatch', 'remainingClaims'] as const) {
+        const element = this.get<HTMLElement>(`[data-permission="${key}"]`);
+        element.dataset.allowed = String(allowed[key]);
+        element.textContent = allowed[key]
+          ? 'Available'
+          : key === 'remainingClaims'
+            ? 'Not in Wind Down'
+            : 'Blocked';
+      }
+      this.get<HTMLButtonElement>('[data-start]').disabled = this.lifecycle !== 'operating';
+      this.get<HTMLButtonElement>('[data-complete]').disabled = this.lifecycle !== 'liquidating';
+      this.text(
+        'note',
+        this.lifecycle === 'wind-down'
+          ? 'Operations has completed the unwind and accounted for losses. Holders can redeem their remaining claims. A later price recovery does not reopen the strategy.'
+          : this.lifecycle === 'liquidating'
+            ? 'Operations has explicitly started liquidation. The strategy cannot return to normal, even if the market price recovers. Losses are booked as holdings are sold.'
+            : this.condition === 'severe'
+              ? 'Severe stress blocks new mints and senior redemption requests; junior batch entry is also blocked. Liquidation has not started. Operations must initiate it explicitly.'
+              : this.condition === 'restricted'
+                ? 'Junior batch entry is blocked. New mints and senior redemption requests remain available in this example. Yield allocation does not change automatically.'
+                : 'The strategy is operating normally. Market stress changes the available actions; only an explicit operator action starts liquidation.',
+      );
+    }
+  }
+  if (!customElements.get('tranche-lifecycle')) {
+    customElements.define('tranche-lifecycle', LifecycleExplorer);
+  }
+</script>

@@ -1,0 +1,140 @@
+---
+import InteractiveFigure from '../interactive/InteractiveFigure.astro';
+import RangeControl from '../interactive/RangeControl.astro';
+interface Props {
+  id?: string;
+}
+const { id = 'tranche-accounting' } = Astro.props;
+---
+
+<InteractiveFigure
+  id={id}
+  number="01"
+  title="One pool. Two claims."
+  description="Follow the assets from deposit to vested yield to a booked loss."
+  caption="Illustrative settlement-asset units. With 12 units of vested yield and a loss of 6 units, senior is worth 1.08 per token and junior 0.90. Fees and rounding are omitted."
+>
+  <tranche-accounting>
+    <div class="interactive-controls">
+      <div class="interactive-toolbar" role="group" aria-label="Accounting event">
+        <button type="button" data-step="0" aria-pressed="true">1 · Deposit</button>
+        <button type="button" data-step="1" aria-pressed="false">2 · Vest yield</button>
+        <button type="button" data-step="2" aria-pressed="false">3 · Book loss</button>
+        <button type="button" class="reset-control" data-reset>Reset</button>
+      </div>
+    </div>
+    <div
+      class="capital-bar"
+      role="img"
+      aria-label="120 units: senior claim 100, junior claim 20, no booked loss"
+      data-capital-bar
+    >
+      <span class="capital-senior" style="width:83.333%" data-bar="senior"></span>
+      <span class="capital-junior" style="width:16.667%" data-bar="junior"></span>
+      <span class="capital-loss" style="width:0%" data-bar="loss"></span>
+    </div>
+    <div class="interactive-legend">
+      <span class="senior-text">Senior <span data-value="senior-claim">100.00</span></span>
+      <span class="junior-text">Junior <span data-value="junior-claim">20.00</span></span>
+      <span class="loss-text">Loss <span data-value="booked-loss">0.00</span></span>
+    </div>
+    <div class="interactive-metrics">
+      <div class="interactive-metric">
+        <span>Strategy assets · units</span><strong data-value="assets">120.00</strong><small
+          >A = senior + junior</small
+        >
+      </div>
+      <div class="interactive-metric">
+        <span>Senior · units/token</span><strong class="senior-text" data-value="senior-price"
+          >1.00</strong
+        ><small>Claim ÷ 100 tokens</small>
+      </div>
+      <div class="interactive-metric">
+        <span>Junior · units/token</span><strong class="junior-text" data-value="junior-price"
+          >1.00</strong
+        ><small>Residual ÷ 20 tokens</small>
+      </div>
+    </div>
+    <div class="interactive-controls">
+      <RangeControl
+        id={`${id}-loss`}
+        name="loss"
+        label="Loss to book after vesting"
+        min={0}
+        max={132}
+        step={1}
+        value={6}
+        valueLabel="6 units"
+      />
+    </div>
+    <p class="interactive-note" role="status" data-value="note">
+      Senior supplies 100 units and junior 20 units. Both token prices start at 1.00.
+    </p>
+  </tranche-accounting>
+</InteractiveFigure>
+<script>
+  import { InteractiveElement, amount } from '../../lib/interactive/element';
+  import { accountingExample, claims } from '../../lib/tranching/model';
+  class Accounting extends InteractiveElement {
+    private step = 0;
+    private loss = 6;
+    protected setup() {
+      this.listen('[data-step]', 'click', (event) => {
+        this.step = Number((event.currentTarget as HTMLElement).dataset.step);
+        this.render();
+      });
+      this.listen('[data-range="loss"]', 'input', (event) => {
+        this.loss = Number((event.target as HTMLInputElement).value);
+        this.step = 2;
+        this.render();
+      });
+      this.listen('[data-reset]', 'click', () => {
+        this.step = 0;
+        this.loss = 6;
+        this.render();
+      });
+    }
+    private render() {
+      const ledger = accountingExample(this.step, this.loss);
+      const prices = claims(ledger);
+      const loss = this.step === 2 ? this.loss : 0;
+      const total = ledger.assets + loss;
+      this.pressed('[data-step]', String(this.step), 'data-step');
+      this.range('loss', this.loss, `${this.loss} units`);
+      for (const [key, value] of Object.entries({
+        assets: ledger.assets,
+        'senior-claim': ledger.seniorClaim,
+        'junior-claim': prices.juniorClaim,
+        'senior-price': prices.seniorPrice,
+        'junior-price': prices.juniorPrice,
+        'booked-loss': loss,
+      }))
+        this.text(key, amount(value));
+      for (const [key, value] of Object.entries({
+        senior: ledger.seniorClaim,
+        junior: prices.juniorClaim,
+        loss,
+      }))
+        this.get<HTMLElement>(`[data-bar="${key}"]`).style.width = `${(value / total) * 100}%`;
+      this.get('[data-capital-bar]').setAttribute(
+        'aria-label',
+        `${amount(ledger.assets)} units remain: senior claim ${amount(ledger.seniorClaim)}, junior claim ${amount(prices.juniorClaim)}; ${loss} units lost.`,
+      );
+      this.text(
+        'note',
+        this.step === 0
+          ? 'Senior supplies 100 units and junior 20 units. Both token prices start at 1.00.'
+          : this.step === 1
+            ? 'A distribution of 12 units has fully vested: 8 to senior and 4 to junior. Junior earns 20% on its smaller contribution; senior earns 8%.'
+            : loss < 24
+              ? `A loss of ${loss} units reduces junior’s claim from 24 to ${amount(prices.juniorClaim)} units. Senior’s claim stays at 108 units.`
+              : loss === 24
+                ? 'The junior buffer of 24 units is exactly exhausted. Junior is worth zero; senior is still intact at 108 units.'
+                : `Junior’s buffer of 24 units is exhausted. The remaining loss of ${amount(loss - 24)} units reduces senior’s claim to ${amount(ledger.seniorClaim)}. Protection is finite.`,
+      );
+    }
+  }
+  if (!customElements.get('tranche-accounting')) {
+    customElements.define('tranche-accounting', Accounting);
+  }
+</script>

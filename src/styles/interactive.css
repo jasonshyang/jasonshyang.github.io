@@ -1,0 +1,528 @@
+/* Shared article figures. Semantic content is rendered before controls activate. */
+.interactive-figure {
+  --senior: #f4a340;
+  --junior: #8ec07c;
+  --loss: #fb7770;
+  margin: 32px 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: var(--bg1);
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--txr);
+  isolation: isolate;
+}
+[data-theme='light'] .interactive-figure {
+  --senior: #a65b07;
+  --junior: #397c4a;
+  --loss: #b42c2c;
+}
+.interactive-heading {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.interactive-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tx2);
+  font: 10px var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+.interactive-kicker > span {
+  color: var(--accT);
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  padding: 3px 6px;
+}
+.article-prose .interactive-heading h3 {
+  margin: 12px 0 7px;
+  font-size: 21px;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+.article-prose .interactive-heading p {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 13px;
+}
+.interactive-body {
+  padding: 22px 24px;
+}
+.interactive-figure figcaption {
+  border-top: 1px solid var(--line);
+  background: var(--bg2);
+  padding: 14px 24px;
+  color: var(--tx2);
+  font-size: 12px;
+}
+.article-prose .interactive-noscript {
+  padding: 12px 24px;
+  margin: 0;
+  font-size: 12px;
+}
+tranche-accounting,
+tranche-scenarios,
+tranche-lifecycle,
+tranche-redemption {
+  display: block;
+}
+.interactive-controls {
+  display: none;
+}
+[data-ready] .interactive-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.interactive-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+.interactive-figure button {
+  min-height: 36px;
+  padding: 8px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--bg2);
+  color: var(--tx2);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.interactive-figure button:hover {
+  border-color: var(--accT);
+  color: var(--tx);
+}
+.interactive-figure button[aria-pressed='true'] {
+  background: var(--accBg);
+  color: var(--accT);
+  border-color: var(--acc);
+}
+.interactive-figure button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.interactive-figure button.reset-control {
+  margin-left: auto;
+  background: transparent;
+  font-weight: 400;
+}
+.interactive-figure input:focus-visible {
+  outline: 2px solid var(--accT);
+  outline-offset: 4px;
+}
+.interactive-range {
+  flex: 1;
+  min-width: 0;
+}
+.interactive-range label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--tx2);
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+.interactive-range output {
+  color: var(--tx);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.interactive-range input {
+  display: block;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--accT);
+}
+.interactive-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+.interactive-metric {
+  min-width: 0;
+  padding: 13px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg2);
+}
+.interactive-metric > span {
+  display: block;
+  font-size: 10px;
+  color: var(--tx2);
+}
+.interactive-metric > strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--tx);
+  font: 600 23px var(--font-mono);
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+}
+.interactive-metric > small {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+  color: var(--tx3);
+}
+.interactive-figure .senior-text {
+  color: var(--senior);
+}
+.interactive-figure .junior-text {
+  color: var(--junior);
+}
+.interactive-figure .loss-text {
+  color: var(--loss);
+}
+.capital-bar {
+  height: 38px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--bg3);
+  margin-top: 18px;
+}
+.capital-bar > span {
+  display: block;
+  min-width: 0;
+}
+.capital-senior {
+  background: var(--senior);
+}
+.capital-junior {
+  background: var(--junior);
+}
+.capital-loss {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    color-mix(in srgb, var(--loss) 35%, transparent) 4px 6px
+  );
+}
+.interactive-legend {
+  display: flex;
+  gap: 10px 18px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--tx2);
+  margin: 10px 0 18px;
+}
+.interactive-legend > span::before {
+  content: '';
+  display: inline-block;
+  height: 7px;
+  width: 14px;
+  border-radius: 2px;
+  margin-right: 6px;
+  background: var(--tx);
+  vertical-align: 1px;
+}
+.interactive-legend > .senior-text::before {
+  background: var(--senior);
+}
+.interactive-legend > .junior-text::before {
+  background: var(--junior);
+}
+.interactive-legend > .loss-text::before {
+  background: var(--loss);
+}
+.article-prose .interactive-note {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  border-left: 2px solid var(--acc);
+  background: var(--accBg);
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--txr);
+}
+.article-prose .interactive-assumption {
+  margin: 16px 0 0;
+  color: var(--tx2);
+  font-size: 11px;
+}
+.chart-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px 12px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--tx);
+}
+.chart-unit {
+  color: var(--tx3);
+  font: 9px var(--font-mono);
+}
+.interactive-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.interactive-chart text {
+  font: 10px var(--font-mono);
+  fill: var(--tx2);
+}
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.chart-guide {
+  stroke: var(--loss);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+  opacity: 0.7;
+}
+.interactive-chart .chart-guide-label {
+  fill: var(--loss);
+  font-size: 9px;
+}
+.chart-line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.series-market {
+  stroke: var(--txr);
+}
+.series-senior {
+  stroke: var(--senior);
+  stroke-dasharray: 7 3;
+}
+.series-junior {
+  stroke: var(--junior);
+}
+.chart-cursor {
+  stroke: var(--tx3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.chart-marker {
+  fill: var(--bg1);
+  stroke-width: 2;
+}
+[data-ready] .interactive-chart svg {
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.interactive-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.interactive-events button {
+  font-size: 10px;
+  min-height: 30px;
+  padding: 5px 8px;
+}
+.interactive-events button::before {
+  content: '↳ ';
+  color: var(--accT);
+}
+.lifecycle-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+.lifecycle-track > div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 9px;
+  color: var(--tx3);
+  font-size: 12px;
+}
+.lifecycle-track small {
+  display: block;
+  font: 9px var(--font-mono);
+  margin-bottom: 5px;
+}
+.lifecycle-track [aria-current='step'] {
+  color: var(--tx);
+  border-color: var(--acc);
+  background: var(--accBg);
+}
+.market-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--tx2);
+}
+.market-band strong {
+  font-weight: 500;
+}
+.market-band[data-band='restricted'] {
+  border-color: var(--senior);
+}
+.market-band[data-band='blocked'] {
+  border-color: var(--loss);
+}
+.permission-list {
+  margin: 18px 0;
+}
+.permission-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.permission-row > strong {
+  font-size: 11px;
+  text-align: right;
+}
+.permission-row [data-allowed='true'] {
+  color: var(--junior);
+}
+.permission-row [data-allowed='false'] {
+  color: var(--loss);
+}
+.interactive-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.interactive-check input {
+  accent-color: var(--accT);
+  width: 16px;
+  height: 16px;
+}
+.redemption-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.redemption-card {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.redemption-card header {
+  padding: 11px 14px;
+  background: var(--bg2);
+  font-size: 12px;
+  font-weight: 600;
+  border-top: 2px solid currentColor;
+}
+.redemption-card dl {
+  padding: 8px 14px;
+  margin: 0;
+}
+.redemption-card dl > div {
+  padding: 7px 0;
+}
+.redemption-card dt {
+  color: var(--tx2);
+  font-size: 10px;
+}
+.redemption-card dd {
+  margin: 2px 0 0;
+  font: 500 17px var(--font-mono);
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+}
+.redemption-card .position-state {
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--tx2);
+}
+.interactive-step-label {
+  font: 11px var(--font-mono);
+  color: var(--tx2);
+}
+.interactive-detail {
+  margin-top: 16px;
+  font-size: 12px;
+}
+.interactive-detail summary {
+  cursor: pointer;
+  color: var(--tx2);
+}
+.interactive-detail .interactive-controls {
+  margin-top: 14px;
+}
+@media (max-width: 640px) {
+  .interactive-heading,
+  .interactive-body {
+    padding: 18px 16px;
+  }
+  .interactive-figure figcaption {
+    padding: 12px 16px;
+  }
+  .interactive-metrics {
+    gap: 6px;
+  }
+  .interactive-metric {
+    padding: 10px 7px;
+  }
+  .interactive-metric > strong {
+    font-size: 19px;
+  }
+  .interactive-metric > small {
+    font-size: 9px;
+  }
+  .interactive-figure button {
+    min-height: 40px;
+  }
+  .interactive-toolbar {
+    gap: 5px;
+  }
+  .lifecycle-track {
+    gap: 5px;
+  }
+  .lifecycle-track > div {
+    font-size: 10px;
+    padding: 10px 7px;
+  }
+  .lifecycle-track small {
+    font-size: 8px;
+  }
+  .redemption-card dl {
+    padding: 8px 10px;
+  }
+  .redemption-card header {
+    padding: 10px;
+  }
+  .redemption-card dd {
+    font-size: 15px;
+  }
+}
+@media print {
+  .interactive-figure {
+    break-inside: avoid;
+    --senior: #9a5200;
+    --junior: #28733b;
+    --loss: #a72828;
+    background: white;
+    color: black;
+  }
+  [data-ready] .interactive-controls {
+    display: none;
+  }
+}
