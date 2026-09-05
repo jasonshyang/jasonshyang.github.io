@@ -1,0 +1,125 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import '../../styles/prose.css';
+// Linked as a URL so the KaTeX stylesheet only loads on posts that contain maths.
+import katexStylesheet from 'katex/dist/katex.min.css?url';
+import avatar from '../../assets/avatar.png';
+import { site } from '../../data/site';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDate, isoDate } from '../../lib/dates';
+import { getPosts, neighbours, postUrl, readingTime, type Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post, posts } }));
+}
+
+interface Props {
+  post: Post;
+  posts: Post[];
+}
+
+const { post, posts } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, description, date, updated, tags, kind, math } = post.data;
+const toc = headings.filter((heading) => heading.depth === 2);
+const { newer, older } = neighbours(post, posts);
+---
+
+<BaseLayout
+  title={`${title} — ${site.name}`}
+  description={description}
+  ogType="article"
+  publishedTime={date}
+  modifiedTime={updated}
+  tags={tags}
+>
+  <Fragment slot="head">{math && <link rel="stylesheet" href={katexStylesheet} />}</Fragment>
+
+  <main id="main-content" class="page container wide post-page" tabindex="-1">
+    <div class="reading-progress" aria-hidden="true" data-reading-progress></div>
+    <a class="back-link" href="/posts/">← All writing</a>
+
+    <header class="post-header">
+      <div class="eyebrow">{kind}</div>
+      <h1 class="display">{title}</h1>
+      <p>{description}</p>
+      <div class="post-meta">
+        <span class="post-author">
+          <Image class="avatar" src={avatar} alt="" width={22} height={22} densities={[1, 2]} />
+          {site.name}
+        </span>
+        <span aria-hidden="true">·</span>
+        <time datetime={isoDate(date)}>{formatDate(date)}</time>
+        {
+          updated && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                Updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>
+              </span>
+            </>
+          )
+        }
+        <span aria-hidden="true">·</span>
+        <span>{readingTime(post)}</span>
+        <span class="post-tags">
+          {
+            tags.map((tag) => (
+              <a class="pill" href={`/posts/?tag=${encodeURIComponent(tag)}`}>
+                {tag}
+              </a>
+            ))
+          }
+        </span>
+      </div>
+    </header>
+
+    <div class="post-layout">
+      {
+        toc.length > 0 && (
+          <aside class="reading-sidebar">
+            <div>
+              <div class="eyebrow muted">On this page</div>
+              <nav class="toc" aria-label="On this page" data-toc>
+                {toc.map((heading) => (
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                ))}
+              </nav>
+            </div>
+          </aside>
+        )
+      }
+
+      <article class="post-article" data-article>
+        <div class="article-prose">
+          <Content />
+        </div>
+
+        {
+          (older || newer) && (
+            <nav class="adjacent-posts" aria-label="More writing">
+              {older && (
+                <a class="adjacent-card" href={postUrl(older)}>
+                  <span>← Older</span>
+                  <strong>{older.data.title}</strong>
+                </a>
+              )}
+              {newer && (
+                <a class="adjacent-card" href={postUrl(newer)}>
+                  <span>Newer →</span>
+                  <strong>{newer.data.title}</strong>
+                </a>
+              )}
+            </nav>
+          )
+        }
+      </article>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import '../../scripts/post';
+</script>

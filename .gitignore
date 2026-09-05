@@ -1,0 +1,21 @@
+# Build output
+dist/
+
+# Generated types
+.astro/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
+.claude/

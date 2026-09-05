@@ -1,0 +1,85 @@
+---
+import { Image } from 'astro:assets';
+import '../styles/prose.css';
+import avatar from '../assets/avatar.png';
+import { site } from '../data/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title={`About — ${site.name}`}
+  description="Jason Yang is a Rust engineer based in the UK, leading protocol development at Solstice Labs and building Solana programs and the backend services that keep them running."
+>
+  <main id="main-content" class="page container about-page" tabindex="-1">
+    <section class="intro" aria-labelledby="about-heading">
+      <div class="avatar-ring">
+        <Image
+          class="avatar intro-avatar"
+          src={avatar}
+          alt={`Portrait of ${site.name}`}
+          width={96}
+          height={96}
+          densities={[1, 2]}
+          loading="eager"
+        />
+      </div>
+      <div class="intro-copy">
+        <div class="status-pill"><span class="status-dot"></span>{site.status}</div>
+        <h1 id="about-heading" class="display">Hi, I’m Jason.</h1>
+      </div>
+    </section>
+
+    <div class="article-prose about-prose">
+      <p>
+        I’m a Rust engineer based in the UK, currently leading protocol development at Solstice
+        Labs. I design and build Solana programs and the backend services that keep them running.
+      </p>
+      <p>
+        Before moving into engineering full-time, I spent more than a decade in financial products
+        and business leadership at HSBC and JPMorgan. Much of that work involved helping new
+        businesses and products take shape. Engineering has expanded how much of that process I can
+        own—from working out how a financial product should behave to building and operating the
+        software myself.
+      </p>
+
+      <h2 id="what-i-build">What I build</h2>
+      <p>
+        At Solstice, I’ve built a stablecoin, a yield vault and a reusable tranching platform,
+        together with the Rust services that support them.
+      </p>
+      <p>
+        The tranching platform is a good example of the work I enjoy. I took an initial financial
+        concept, worked through its accounting and risk mechanics, and carried it through protocol
+        design, implementation, testing, external audits and launch. I also built the price-feed and
+        automation infrastructure needed to operate it and support additional underlying assets.
+      </p>
+      <p>
+        For me, accounting, risk and operational behaviour are part of the engineering, not separate
+        concerns. I make the rules and assumptions explicit, structure the code so they can be
+        tested, and stay involved once the system is running.
+      </p>
+
+      <h2 id="background">Background</h2>
+      <p>
+        At HSBC, I helped build the China credit-card business from zero to one million cards, later
+        leading business planning and proposition development. That meant working across the
+        economics of the lending business and the products offered to customers. I subsequently
+        moved into the global lending team, working on international credit decisioning and
+        fraud-risk initiatives.
+      </p>
+      <p>
+        At JPMorgan, I joined the early Chase UK lending team and owned account-management product
+        design through its credit-card launch. My work became increasingly focused on defining how a
+        financial system should behave across different scenarios—the calculations, state changes
+        and exceptions that the software needed to handle.
+      </p>
+      <p>I joined Solstice in April 2025, making hands-on engineering my full-time work.</p>
+
+      <h2 id="this-site">This site</h2>
+      <p>
+        I use small Rust experiments to work through ideas and write up what I learn. Most posts are
+        about Rust internals, systems programming and the mechanics behind financial protocols.
+      </p>
+    </div>
+  </main>
+</BaseLayout>

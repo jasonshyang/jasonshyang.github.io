@@ -1,0 +1,32 @@
+---
+import Icon from './Icon.astro';
+import { formatDate, formatDayMonth, isoDate } from '../lib/dates';
+import { postUrl, readingTime, type Post } from '../lib/posts';
+
+interface Props {
+  post: Post;
+  /** Position in its list, used to stagger the entry animation. */
+  index?: number;
+  /** `short` omits the year, for lists already grouped by year. */
+  dateFormat?: 'full' | 'short';
+}
+
+const { post, index = 0, dateFormat = 'full' } = Astro.props;
+const { title, date, tags, kind } = post.data;
+const dateLabel = dateFormat === 'short' ? formatDayMonth(date) : formatDate(date);
+---
+
+<li class="post-row" data-tags={tags.join(' ')} style={`--i: ${index}`}>
+  <a href={postUrl(post)}>
+    <time class="post-row-date" datetime={isoDate(date)}>{dateLabel}</time>
+    <div class="post-row-main">
+      <h3>{title}</h3>
+      <div class="post-row-meta">
+        <span>{kind}</span>
+        <span aria-hidden="true">·</span>
+        <span>{readingTime(post)}</span>
+      </div>
+    </div>
+    <Icon name="arrow" size={18} class="post-row-arrow" />
+  </a>
+</li>

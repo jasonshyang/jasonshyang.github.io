@@ -1,0 +1,6 @@
+dist/
+.astro/
+node_modules/
+pnpm-lock.yaml
+# Post bodies are kept exactly as written.
+src/content/

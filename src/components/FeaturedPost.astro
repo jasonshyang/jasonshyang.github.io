@@ -1,0 +1,27 @@
+---
+import Icon from './Icon.astro';
+import { formatDate, isoDate } from '../lib/dates';
+import { postUrl, readingTime, type Post } from '../lib/posts';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const { title, description, date, kind } = post.data;
+---
+
+<a class="featured-post" href={postUrl(post)}>
+  <div class="featured-post-label">
+    <span class="eyebrow">Latest</span>
+    <time datetime={isoDate(date)}>{formatDate(date)}</time>
+  </div>
+  <h3>{title}</h3>
+  <p>{description}</p>
+  <div class="featured-post-meta">
+    <span>{kind}</span>
+    <span aria-hidden="true">·</span>
+    <span>{readingTime(post)}</span>
+    <span class="featured-post-cta">Read <Icon name="arrow" size={16} /></span>
+  </div>
+</a>
