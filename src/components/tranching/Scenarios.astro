@@ -1,0 +1,259 @@
+---
+import InteractiveFigure from '../interactive/InteractiveFigure.astro';
+import RangeControl from '../interactive/RangeControl.astro';
+import LineChart from '../interactive/LineChart.astro';
+import { buildScenario, scenarioLabels, scenarioEvents } from '../../lib/tranching/model';
+const { id = 'tranche-scenarios' } = Astro.props;
+const points = buildScenario('mild');
+const marketPlot = { width: 640, height: 195, xMin: 0, xMax: 100, yMin: 60, yMax: 110 };
+const tokenPlot = { ...marketPlot, height: 205, yMin: 0, yMax: 1.4 };
+---
+
+<InteractiveFigure
+  id={id}
+  number="02"
+  title="A price move is not a booked loss."
+  description="Choose a scenario, then scrub through its events. The two charts share a timeline, not a price scale."
+  caption="Fictional price indices start at 100; they represent no specific asset or risk calibration. Default capital: 100 units senior and 40 units junior. One supplied distribution of 8 units per tranche vests over 60 illustrative days, then stops."
+>
+  <tranche-scenarios>
+    <div class="interactive-controls">
+      <div class="interactive-toolbar" role="group" aria-label="Price scenario">
+        {
+          Object.entries(scenarioLabels).map(([key, label]) => (
+            <button type="button" data-scenario={key} aria-pressed={key === 'mild'}>
+              {label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <LineChart
+      id={`${id}-market`}
+      title="Underlying price · index"
+      description="A fictional underlying price index starting at 100. No risk thresholds are shown."
+      plot={marketPlot}
+      cursor={45}
+      series={[
+        {
+          key: 'market',
+          label: 'Underlying',
+          points: points.map((point) => ({ x: point.day, y: point.market })),
+        },
+      ]}
+    />
+    <LineChart
+      id={`${id}-tokens`}
+      title="Book-value token prices · units"
+      description="Senior and junior token prices rise as supplied yield vests, regardless of the mild market dip."
+      plot={tokenPlot}
+      cursor={45}
+      series={['senior', 'junior'].map((key) => ({
+        key,
+        label: key,
+        points: points.map((point) => ({ x: point.day, y: point[key as 'senior' | 'junior'] })),
+        stepped: true,
+      }))}
+    />
+    <div class="interactive-legend">
+      <span>Underlying market</span><span class="senior-text">Senior · dashed</span><span
+        class="junior-text">Junior · solid</span
+      >
+    </div>
+    <div class="interactive-controls">
+      <RangeControl
+        id={`${id}-day`}
+        name="day"
+        label="Explore the timeline"
+        min={0}
+        max={100}
+        value={45}
+        valueLabel="Day 45"
+      />
+      <div class="interactive-events" role="group" aria-label="Jump to an event">
+        {
+          scenarioEvents.mild.map((event) => (
+            <button type="button" data-event={event.day}>
+              {event.day} · {event.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <div class="interactive-metrics">
+      <div class="interactive-metric">
+        <span>Underlying · index</span><strong data-value="market">94.00</strong><small
+          data-value="day-label">Day 45</small
+        >
+      </div>
+      <div class="interactive-metric">
+        <span>Senior · units/token</span><strong class="senior-text" data-value="senior"
+          >1.06</strong
+        ><small>Book-value claim</small>
+      </div>
+      <div class="interactive-metric">
+        <span>Junior · units/token</span><strong class="junior-text" data-value="junior"
+          >1.15</strong
+        ><small>Residual claim</small>
+      </div>
+    </div>
+    <div class="market-band">
+      <span data-value="lifecycle">Operating</span><span
+        ><strong data-value="loss">0.00</strong> units booked loss</span
+      >
+    </div>
+    <p class="interactive-note" role="status" data-value="note">{points[45].note}</p>
+    <details class="interactive-detail">
+      <summary>Change the initial junior buffer</summary>
+      <div class="interactive-controls">
+        <RangeControl
+          id={`${id}-buffer`}
+          name="buffer"
+          label="Junior capital against 100 units senior"
+          min={5}
+          max={60}
+          step={5}
+          value={40}
+          valueLabel="40 units"
+        />
+        <p class="interactive-assumption">
+          Try 5 units in the unwind scenario. The same market path can then impair senior. The
+          amount of supplied yield stays fixed in this example.
+        </p>
+      </div>
+    </details>
+  </tranche-scenarios>
+</InteractiveFigure>
+<script>
+  import { InteractiveElement, amount } from '../../lib/interactive/element';
+  import { inset, updateLineChart } from '../../lib/interactive/chart';
+  import { buildScenario, scenarioEvents, type Scenario } from '../../lib/tranching/model';
+  class Scenarios extends InteractiveElement {
+    private scenario: Scenario = 'mild';
+    private day = 45;
+    private buffer = 40;
+    private points = buildScenario('mild');
+    private chartWidth = 640;
+    private resizeObserver?: ResizeObserver;
+    protected setup() {
+      this.resizeObserver = new ResizeObserver(([entry]) => {
+        const width = Math.max(260, Math.round(entry.contentRect.width));
+        if (width !== this.chartWidth) {
+          this.chartWidth = width;
+          this.render();
+        }
+      });
+      this.resizeObserver.observe(this.get('[data-chart]'));
+      this.listen('[data-scenario]', 'click', (event) => {
+        this.scenario = (event.currentTarget as HTMLElement).dataset.scenario as Scenario;
+        this.day = this.scenario === 'mild' ? 45 : this.scenario === 'redemptions' ? 50 : 80;
+        this.rebuild();
+      });
+      this.listen('[data-range="day"]', 'input', (event) => {
+        this.day = Number((event.target as HTMLInputElement).value);
+        this.render();
+      });
+      this.listen('[data-range="buffer"]', 'input', (event) => {
+        this.buffer = Number((event.target as HTMLInputElement).value);
+        this.rebuild();
+      });
+      this.listen('.interactive-events', 'click', (event) => {
+        const button = (event.target as Element).closest<HTMLButtonElement>('[data-event]');
+        if (button) {
+          this.day = Number(button.dataset.event);
+          this.render();
+        }
+      });
+      const scrub = (event: Event) => {
+        const pointer = event as PointerEvent;
+        if (pointer.type === 'pointermove' && pointer.buttons !== 1) return;
+        const svg = pointer.currentTarget as SVGSVGElement;
+        const bounds = svg.getBoundingClientRect();
+        const x = ((pointer.clientX - bounds.left) / bounds.width) * this.chartWidth;
+        this.day = Math.round(
+          Math.max(
+            0,
+            Math.min(100, ((x - inset.left) / (this.chartWidth - inset.left - inset.right)) * 100),
+          ),
+        );
+        if (pointer.type === 'pointerdown') svg.setPointerCapture(pointer.pointerId);
+        this.render();
+      };
+      this.listen('svg', 'pointerdown', scrub);
+      this.listen('svg', 'pointermove', scrub);
+    }
+    disconnectedCallback() {
+      this.resizeObserver?.disconnect();
+      super.disconnectedCallback();
+    }
+    private rebuild() {
+      this.points = buildScenario(this.scenario, this.buffer);
+      const container = this.get('.interactive-events');
+      container.replaceChildren(
+        ...scenarioEvents[this.scenario].map((event) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.dataset.event = String(event.day);
+          button.textContent = `${event.day} · ${event.label}`;
+          return button;
+        }),
+      );
+      this.render();
+    }
+    private render() {
+      const point = this.points[this.day];
+      const plot = { width: this.chartWidth, height: 195, xMin: 0, xMax: 100, yMin: 60, yMax: 110 };
+      const tokenMax = Math.max(
+        1.4,
+        Math.ceil((Math.max(...this.points.map((point) => point.junior)) - 1e-9) * 5) / 5 + 0.2,
+      );
+      updateLineChart(
+        this.get('[data-chart$="-market"]'),
+        [
+          {
+            key: 'market',
+            points: this.points.map((point) => ({ x: point.day, y: point.market })),
+          },
+        ],
+        plot,
+        this.day,
+      );
+      updateLineChart(
+        this.get('[data-chart$="-tokens"]'),
+        ['senior', 'junior'].map((key) => ({
+          key,
+          points: this.points.map((point) => ({
+            x: point.day,
+            y: point[key as 'senior' | 'junior'],
+          })),
+          stepped: true,
+        })),
+        { ...plot, height: 205, yMin: 0, yMax: tokenMax },
+        this.day,
+      );
+      this.get('[data-chart$="-tokens"] desc').textContent =
+        `Day ${this.day}. Senior ${amount(point.senior)}, junior ${amount(point.junior)} units per token. ${point.note}`;
+      this.get('[data-chart$="-market"] desc').textContent =
+        `Day ${this.day}. Underlying price index ${amount(point.market)}, starting from 100. Fictional path; no risk calibration is modelled.`;
+      this.range('day', this.day, `Day ${this.day}`);
+      this.range('buffer', this.buffer, `${this.buffer} units`);
+      this.pressed('[data-scenario]', this.scenario, 'data-scenario');
+      this.pressed('[data-event]', String(this.day), 'data-event');
+      for (const key of ['market', 'senior', 'junior'] as const) this.text(key, amount(point[key]));
+      this.text('day-label', `Day ${this.day}`);
+      this.text('loss', amount(point.bookedLoss));
+      this.text(
+        'lifecycle',
+        point.lifecycle === 'wind-down'
+          ? 'Wind Down'
+          : point.lifecycle === 'liquidating'
+            ? 'Liquidating'
+            : 'Operating',
+      );
+      this.text('note', point.note);
+    }
+  }
+  if (!customElements.get('tranche-scenarios')) {
+    customElements.define('tranche-scenarios', Scenarios);
+  }
+</script>

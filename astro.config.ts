@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import mdx from '@astrojs/mdx';
 import { rehypeHeadingIds, unified } from '@astrojs/markdown-remark';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
@@ -9,7 +10,7 @@ export default defineConfig({
   site: 'https://jasonshyang.github.io',
   trailingSlash: 'always',
   compressHTML: true,
-  integrations: [sitemap()],
+  integrations: [mdx(), sitemap()],
   markdown: {
     processor: unified({
       remarkPlugins: [remarkMath],

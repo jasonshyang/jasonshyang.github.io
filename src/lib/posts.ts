@@ -6,9 +6,9 @@ const WORDS_PER_MINUTE = 220;
 
 const byNewest = (a: Post, b: Post) => b.data.date.getTime() - a.data.date.getTime();
 
-/** All published posts, newest first. */
+/** Drafts are visible only in the local development server, never in a build. */
 export async function getPosts(): Promise<Post[]> {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getCollection('posts', ({ data }) => !data.draft || import.meta.env.DEV);
   return posts.sort(byNewest);
 }
 

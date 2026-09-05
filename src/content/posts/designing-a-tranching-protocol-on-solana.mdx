@@ -1,0 +1,150 @@
+---
+title: Designing a Tranching Protocol on Solana
+description: How junior and senior claims shape the accounting, redemption queues and liquidation lifecycle of a Solana tranching protocol.
+date: 2026-09-05
+tags: [solana, rust, defi]
+kind: DeFi
+math: true
+draft: true
+---
+
+import Accounting from '../../components/tranching/Accounting.astro';
+import Scenarios from '../../components/tranching/Scenarios.astro';
+import Redemption from '../../components/tranching/Redemption.astro';
+import Lifecycle from '../../components/tranching/Lifecycle.astro';
+
+When building a yield-bearing token, a common approach is to let its price reflect the assets backing it. As yield is added, each token represents a larger claim. But what if we want two tokens backed by the same strategy, with one taking more risk in exchange for more yield?
+
+This is the idea behind tranching. The **junior** tranche absorbs losses first, protecting the **senior** tranche. In return, senior gives up part of its yield to junior.
+
+I designed and built a Solana program for this, from the accounting model to the Rust/Anchor implementation. The protocol supports different underlying assets with similar characteristics: they generate yield, have observable market prices, and can be sold to fund settlement.
+
+Let's look at how the two claims are connected, why redemption turned out to be a major part of the design, and how the program supports different underlying assets.
+
+## Representing the Tranches
+
+We can start with the same asset-per-share model used by a reward-bearing vault. Users deposit a settlement asset and receive tokens representing their share of a claim. The strategy invests in the underlying asset, and yield increases the value of each claim without increasing the holder's token balance.
+
+Throughout this post, amounts are expressed in generic settlement-asset units. The figures use fictional prices, capital amounts and timelines to explain the mechanics; strategy-specific risk settings are omitted.
+
+The difference is that we now have two claims to calculate.
+
+Let $A$ be the strategy's total book-value assets, and $S$ be the senior claim. Both include vested yield. Junior owns whatever remains after senior, so its claim is $A-S$.
+
+With $Q_s$ senior tokens and $Q_j$ junior tokens outstanding, the prices are:
+
+$$
+P_s = \frac{S}{Q_s}, \qquad P_j = \frac{A-S}{Q_j}
+$$
+
+Here, “price” means the program’s accounting value per share, rather than a secondary market trading price.
+
+Notice that junior isn't an independent vault. Its value comes from the difference between total assets and the senior claim. This is what connects the tranches.
+
+For example, suppose we start with 100 units from senior and 20 units from junior, issuing 100 and 20 tokens respectively. Both prices start at 1.
+
+We then distribute 12 units of yield: 8 to senior and 4 to junior. After it has fully vested, we book a further loss of 6 units:
+
+<Accounting />
+
+These are illustrative amounts, ignoring fees and rounding. Senior earns a lower return, while junior receives more yield relative to its smaller capital contribution.
+
+When the loss is booked, total assets fall but the senior claim stays unchanged. Junior's claim falls from 24 to 18, so its token price falls to 0.90. We don't need to separately adjust the junior price: the accounting relationship does that for us.
+
+That protection has a limit. In the example, junior can absorb 24 units after the yield has vested. Any further loss reduces the senior claim. Junior’s claim stops at zero; it does not become negative. Try moving the loss slider past 24 units to see where senior starts to take a loss.
+
+Minting at the current price increases assets and share supply proportionally, preserving the price apart from rounding. Yield and booked losses, rather than ordinary deposits, produce the return.
+
+Yield is supplied by operations and vests linearly after distribution, smoothing the price change rather than producing a jump. We don't accrue a promised return in advance: if less yield is supplied, holders receive less.
+
+## Choosing the Accounting Model
+
+The pricing formula leaves an important question: what value should we use for the strategy's assets?
+
+We considered **book value** and **mark-to-market**. With book value, losses are recognised when they are realised and booked. With mark-to-market, the accounting follows the current market value of the holdings.
+
+Mark-to-market makes the market exposure more visible. But because the senior claim is protected by junior, junior absorbs the price movement across both tranches. A small move in the underlying can therefore produce a much larger percentage move in junior.
+
+For the class of yield-bearing assets we had in mind, we wanted the token price to reflect distributed yield and realised losses without passing every temporary market movement into junior. Book value suited that objective better.
+
+Of course, keeping the accounting price unchanged doesn't make the underlying loss disappear. But trading operations can reduce how much of that loss we need to realise. Purchases and sales can be offset, with incoming deposits helping fund outgoing redemptions so that only the net flow needs to be traded. We can also keep a portion of the strategy's NAV in cash, giving us a buffer to pay redemptions during a mild depeg without immediately selling the underlying.
+
+These choices give us room to manage temporary dislocations and can reduce realised losses. If we still need to sell at an unfavourable price to fund redemptions, though, the loss has to be booked.
+
+Book-value pricing also makes attracting junior capital harder during stress. We need its protection most when the book-value entry price may be above what the holdings could realise in the market. We retained controls over yield allocation and supply caps to influence the capital mix, but those don't guarantee new deposits.
+
+So book value gives us less volatile token pricing at the cost of less immediate visibility into market losses. Loss recognition depends on off-chain operations, and redemption needs to respect that.
+
+The next figure separates the underlying market price from the events that change the accounting. A market dip alone does not book a loss. Selling to fund a senior redemption does; selling during an unwind does too.
+
+<Scenarios />
+
+The example supplies one finite yield distribution. Once it has fully vested, the lines flatten unless another accounting event occurs. Their upward slope is not a promised return.
+
+## Why Redemption Needs Different Rules
+
+Both tokens represent shares, so it might seem natural to give them the same redemption flow. But they serve different purposes in the strategy.
+
+### Junior: Queue Shares, Settle Later
+
+Junior capital is the buffer protecting senior. A large junior exit can remove that protection even without another fall in the underlying price.
+
+It also creates a problem with book-value accounting. If junior could leave immediately at its accounting price while the underlying traded below cost, the loss associated with funding that exit could be left with the remaining holders.
+
+I used settlement batches to make junior redemptions concentrated and predictable. Users queue their tokens into a batch, and operations settles the batch after arranging the underlying trades.
+
+The tokens aren't burned when they enter the queue. Until settlement, they remain shares in the strategy, participating in both yield and loss. At settlement, the program burns them, calculates their claim, deducts the reported loss incurred in fulfilling the batch, and reserves the remaining settlement assets for withdrawal.
+
+The leaving juniors therefore pay the realised loss associated with their exit, instead of leaving it behind. Operations can also postpone or cancel a batch when settling it would put the strategy at risk.
+
+This is deliberately permissioned settlement. The program enforces the accounting, but it relies on operations to execute the trades and report their outcome. Junior holders get exposure to the higher-yielding tranche, not an unconditional instant exit.
+
+### Senior: Settle Now, Withdraw Later
+
+Senior can redeem instantly for a fee, or wait through a cooldown for a fee-free withdrawal.
+
+The interesting part is deciding when a queued holder stops earning yield. Suppose we left their shares outstanding throughout the cooldown. They could queue immediately after minting, keep earning yield while waiting, and then remain ready to leave without paying the instant-redemption fee. This means the cooldown would have lost its intended trade-off.
+
+Instead, we settle the senior claim when the holder queues. The shares are burned and the settlement amount is fixed and placed in escrow. The holder waits to withdraw those assets, rather than continuing to own a yield-bearing position.
+
+So the two queues mean different things: **junior queues shares for future settlement; senior settles immediately and waits for withdrawal.**
+
+The timeline below follows two holders who each start with 10 tokens. Queue both, then step through yield vesting, a strategy loss, junior settlement and withdrawal. Watch which balances remain exposed.
+
+<Redemption />
+
+This distinction also matters in the implementation. Once a claim has been settled and its assets separated from the strategy, withdrawing that escrow must not reduce the strategy's assets again.
+
+## Using Market Prices as Guardrails
+
+Book-value pricing still needs market information. We use the underlying price to gate particular actions, rather than continuously recalculate the tranche token prices.
+
+The risk settings depend on the underlying asset. As conditions deteriorate, controls can first restrict junior exits to preserve the buffer, then pause new mints and senior redemption requests under more severe stress. The figure below uses qualitative conditions to show that progression.
+
+### Why Liquidation Isn't Automatic
+
+A price check can restrict an action without permanently terminating the strategy. Liquidation is different: once we start unwinding, the strategy cannot return to normal operation.
+
+For that reason, operations explicitly initiates liquidation rather than letting a transient price event trigger an irreversible transition automatically. This trades automatic execution for operational judgement and timely intervention - because the price guardrails will prevent any activities from users immediately if the price falls below the threshold, making this an operation step instead of automated execution does not compromise on protocol security.
+
+As holdings are unwound, the program allocates reported losses to junior first. Only after junior is exhausted can the residual reach senior.
+
+After the unwind and accounting are complete, the strategy enters Wind Down and holders can redeem their remaining claims.
+
+The distinction is easier to see by changing market conditions and lifecycle independently. A recovery can lift restrictions while the strategy is still operating. It cannot reverse a liquidation that operations has already started.
+
+<Lifecycle />
+
+## Building a Reusable Program
+
+The program is designed around a class of assets, rather than a single product. Assets with similar yield, valuation and settlement characteristics can use the same tranche machinery with their own strategy configuration.
+
+The reusable part is the tranche machinery: accounting, pricing, yield distribution, redemption and liquidation. Each strategy has its own assets, token supplies and lifecycle state. Liquidating one doesn't liquidate the others, although program-wide controls are shared.
+
+Each new underlying still needs an operational process for yield delivery and settlement that fits the accounting model.
+
+## Conclusion
+
+The price formulas were the starting point, but they only worked as part of a larger design. Choosing book value made controlled loss recognition and redemption important. Different obligations led to different queue mechanics. Price guardrails let us restrict activity separately from the irreversible decision to liquidate.
+
+For me, the most interesting part was working through how those financial requirements changed the program itself. Getting the accounting, instructions and operational process to describe the same system was most of the design work.

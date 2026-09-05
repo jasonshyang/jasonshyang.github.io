@@ -1,0 +1,210 @@
+---
+import InteractiveFigure from '../interactive/InteractiveFigure.astro';
+import RangeControl from '../interactive/RangeControl.astro';
+import { redemptionSteps } from '../../lib/tranching/model';
+const { id = 'tranche-redemption' } = Astro.props;
+---
+
+<InteractiveFigure
+  id={id}
+  number="03"
+  title="What stays exposed in the queue?"
+  description="Follow two holders with 10 tokens each. Senior fixes its settlement claim at queue time; junior keeps shares until settlement."
+  caption="A separate illustrative example, starting with 100 senior and 20 junior tokens. Timing is schematic, not the actual cooldown or batch schedule. Liquidity is assumed available when senior settles; fees and rounding are omitted."
+>
+  <tranche-redemption>
+    <div class="interactive-controls">
+      <RangeControl
+        id={`${id}-step`}
+        name="step"
+        label="Redemption timeline"
+        min={0}
+        max={5}
+        value={0}
+        valueLabel="1 / 6 · Holding"
+      />
+      <div class="interactive-toolbar" role="group" aria-label="Redemption event controls">
+        <button type="button" data-prev disabled>← Previous</button>
+        <button type="button" data-next>Queue both →</button>
+        <button type="button" class="reset-control" data-reset>Reset</button>
+      </div>
+    </div>
+    <div class="redemption-cards">
+      {
+        ['senior', 'junior'].map((tranche) => (
+          <section class="redemption-card" aria-label={`${tranche} holder’s position`}>
+            <header class={`${tranche}-text`}>
+              {tranche === 'senior' ? 'Senior holder' : 'Junior holder'}
+            </header>
+            <dl>
+              <div>
+                <>
+                  <dt>Shares still outstanding</dt>
+                  <dd data-value={`${tranche}-tokens`}>10</dd>
+                </>
+              </div>
+              <div>
+                <>
+                  <dt>Claim in strategy · units</dt>
+                  <dd data-value={`${tranche}-exposure`}>10.00</dd>
+                </>
+              </div>
+              <div>
+                <>
+                  <dt>Fixed escrow · units</dt>
+                  <dd data-value={`${tranche}-escrow`}>0.00</dd>
+                </>
+              </div>
+              <div>
+                <>
+                  <dt>Withdrawn to wallet · units</dt>
+                  <dd data-value={`${tranche}-wallet`}>0.00</dd>
+                </>
+              </div>
+            </dl>
+            <div class="position-state" data-value={`${tranche}-state`}>
+              Holding yield-bearing shares
+            </div>
+          </section>
+        ))
+      }
+    </div>
+    <div class="interactive-metrics">
+      <div class="interactive-metric">
+        <span>Strategy assets · units</span><strong data-value="assets">120.00</strong><small
+          >Excludes settled escrow</small
+        >
+      </div>
+      <div class="interactive-metric">
+        <span>Senior supply</span><strong data-value="senior-supply">100</strong><small
+          >All outstanding shares</small
+        >
+      </div>
+      <div class="interactive-metric">
+        <span>Junior supply</span><strong data-value="junior-supply">20</strong><small
+          >Includes queued shares</small
+        >
+      </div>
+    </div>
+    <p class="interactive-note" role="status" data-value="note">{redemptionSteps[0].note}</p>
+    <details class="interactive-detail">
+      <summary>Change the loss assumptions</summary>
+      <div class="interactive-controls">
+        <RangeControl
+          id={`${id}-loss`}
+          name="strategy-loss"
+          label="Strategy loss at “Book loss”"
+          min={0}
+          max={24}
+          value={6}
+          valueLabel="6 units"
+        />
+        <RangeControl
+          id={`${id}-sale-loss`}
+          name="batch-loss"
+          label="Batch sale loss at “Settle junior”"
+          min={0}
+          max={10}
+          value={1}
+          valueLabel="1 units"
+        />
+        <p class="interactive-assumption">
+          The batch sale loss is capped at the exiting claim. Adjust an amount, then step forward to
+          the event where it is applied.
+        </p>
+      </div>
+    </details>
+  </tranche-redemption>
+</InteractiveFigure>
+<script>
+  import { InteractiveElement, amount } from '../../lib/interactive/element';
+  import { redemptionExample, redemptionSteps } from '../../lib/tranching/model';
+  class Redemption extends InteractiveElement {
+    private step = 0;
+    private loss = 6;
+    private batchLoss = 1;
+    protected setup() {
+      this.listen('[data-range="step"]', 'input', (event) => {
+        this.step = Number((event.target as HTMLInputElement).value);
+        this.render();
+      });
+      this.listen('[data-prev]', 'click', () => {
+        this.step = Math.max(0, this.step - 1);
+        this.render();
+      });
+      this.listen('[data-next]', 'click', () => {
+        this.step = Math.min(5, this.step + 1);
+        this.render();
+      });
+      this.listen('[data-range="strategy-loss"]', 'input', (event) => {
+        this.loss = Number((event.target as HTMLInputElement).value);
+        this.render();
+      });
+      this.listen('[data-range="batch-loss"]', 'input', (event) => {
+        this.batchLoss = Number((event.target as HTMLInputElement).value);
+        this.render();
+      });
+      this.listen('[data-reset]', 'click', () => {
+        this.step = 0;
+        this.loss = 6;
+        this.batchLoss = 1;
+        this.render();
+      });
+    }
+    private render() {
+      const snapshot = redemptionExample(this.step, this.loss, this.batchLoss);
+      this.range('step', this.step, `${this.step + 1} / 6 · ${redemptionSteps[this.step].label}`);
+      this.range('strategy-loss', this.loss, `${this.loss} units`);
+      this.range('batch-loss', this.batchLoss, `${this.batchLoss} units`);
+      for (const [key, value] of Object.entries({
+        'senior-tokens': snapshot.seniorTokens,
+        'junior-tokens': snapshot.juniorTokens,
+        'senior-supply': snapshot.ledger.seniorSupply,
+        'junior-supply': snapshot.ledger.juniorSupply,
+      }))
+        this.text(key, String(value));
+      for (const [key, value] of Object.entries({
+        assets: snapshot.ledger.assets,
+        'senior-exposure': snapshot.seniorExposure,
+        'junior-exposure': snapshot.juniorExposure,
+        'senior-escrow': snapshot.seniorEscrow,
+        'junior-escrow': snapshot.juniorEscrow,
+        'senior-wallet': snapshot.seniorWallet,
+        'junior-wallet': snapshot.juniorWallet,
+      }))
+        this.text(key, amount(value));
+      this.text(
+        'senior-state',
+        this.step === 0
+          ? 'Holding yield-bearing shares'
+          : this.step === 5
+            ? 'Escrow withdrawn after cooldown'
+            : 'Settled · waiting to withdraw',
+      );
+      this.text(
+        'junior-state',
+        this.step === 0
+          ? 'Holding yield-bearing shares'
+          : this.step < 4
+            ? 'Queued shares · still exposed'
+            : this.step === 4
+              ? 'Settled · waiting to withdraw'
+              : 'Escrow withdrawn',
+      );
+      this.get<HTMLButtonElement>('[data-prev]').disabled = this.step === 0;
+      const next = this.get<HTMLButtonElement>('[data-next]');
+      next.disabled = this.step === 5;
+      next.textContent = this.step === 5 ? 'Complete' : `${redemptionSteps[this.step + 1].label} →`;
+      const detail =
+        this.step === 3
+          ? ` A loss of ${this.loss} units is booked to the strategy.`
+          : this.step === 4
+            ? ` This batch bears ${amount(snapshot.saleLoss)} units of sale loss and reserves ${amount(snapshot.juniorEscrow)} units.`
+            : '';
+      this.text('note', redemptionSteps[this.step].note + detail);
+    }
+  }
+  if (!customElements.get('tranche-redemption')) {
+    customElements.define('tranche-redemption', Redemption);
+  }
+</script>

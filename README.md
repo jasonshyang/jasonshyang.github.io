@@ -26,6 +26,10 @@ the Shiki theme), run `pnpm astro build --force` so every post is rendered again
 
 ## Writing a post
 
+For embedded graphs and simulations, use MDX and the shared components described
+in [Interactive posts](docs/interactive-posts.md). Drafts appear in `pnpm dev`
+but are excluded from production builds.
+
 Add a Markdown file to `src/content/posts/`. The file name becomes the URL, so `my-post.md` is
 published at `/posts/my-post/`.
 

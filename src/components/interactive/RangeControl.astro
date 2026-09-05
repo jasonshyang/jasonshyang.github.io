@@ -1,0 +1,29 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  step?: number;
+  value: number;
+  valueLabel: string;
+  name: string;
+}
+const { id, label, min, max, step = 1, value, valueLabel, name } = Astro.props;
+---
+
+<div class="interactive-range">
+  <label for={id}
+    ><span>{label}</span><output for={id} data-range-output={name}>{valueLabel}</output></label
+  >
+  <input
+    id={id}
+    type="range"
+    min={min}
+    max={max}
+    step={step}
+    value={value}
+    data-range={name}
+    aria-valuetext={valueLabel}
+  />
+</div>

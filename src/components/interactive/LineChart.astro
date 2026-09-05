@@ -1,0 +1,114 @@
+---
+import { inset, linePath, position, type Plot, type Point } from '../../lib/interactive/chart';
+interface Props {
+  id: string;
+  title: string;
+  description: string;
+  plot: Plot;
+  cursor: number;
+  series: { key: string; label: string; points: Point[]; stepped?: boolean }[];
+  guides?: { value: number; label: string }[];
+}
+const { id, title, description, plot, cursor, series, guides = [] } = Astro.props;
+const tickValues = Array.from(
+  { length: 5 },
+  (_, index) => plot.yMin + (index / 4) * (plot.yMax - plot.yMin),
+);
+const x = position({ x: cursor, y: 0 }, plot).x;
+---
+
+<div class="interactive-chart" data-chart={id}>
+  <div class="chart-heading">
+    <span>{title}</span><span class="chart-unit">Illustrative · day 0–100</span>
+  </div>
+  <svg
+    viewBox={`0 0 ${plot.width} ${plot.height}`}
+    role="img"
+    aria-labelledby={`${id}-chart-title ${id}-chart-description`}
+  >
+    <title id={`${id}-chart-title`}>{title}</title>
+    <desc id={`${id}-chart-description`}>{description}</desc>
+    {
+      tickValues.map((value) => {
+        const y = position({ x: 0, y: value }, plot).y;
+        return (
+          <g data-y-tick>
+            <line x1={inset.left} x2={plot.width - inset.right} y1={y} y2={y} class="chart-grid" />
+            <text x={inset.left - 8} y={y + 4} text-anchor="end" data-tick-label>
+              {value.toFixed(plot.yMax > 10 ? 0 : 2)}
+            </text>
+          </g>
+        );
+      })
+    }
+    {
+      guides.map((guide) => {
+        const y = position({ x: 0, y: guide.value }, plot).y;
+        return (
+          <g data-guide={guide.value}>
+            <>
+              <line
+                x1={inset.left}
+                x2={plot.width - inset.right}
+                y1={y}
+                y2={y}
+                class="chart-guide"
+              />
+              <text
+                x={plot.width - inset.right}
+                y={y - 5}
+                text-anchor="end"
+                class="chart-guide-label"
+              >
+                {guide.label}
+              </text>
+            </>
+          </g>
+        );
+      })
+    }
+    {
+      series.map((series) => (
+        <path
+          data-series={series.key}
+          d={linePath(series.points, plot, series.stepped)}
+          class={`chart-line series-${series.key}`}
+        />
+      ))
+    }
+    <line
+      data-cursor
+      x1={x}
+      x2={x}
+      y1={inset.top}
+      y2={plot.height - inset.bottom}
+      class="chart-cursor"></line>
+    {
+      series.map((item) => {
+        const point = item.points.find((point) => point.x === cursor) ?? item.points[0];
+        const { x, y } = position(point, plot);
+        return (
+          <circle
+            data-marker={item.key}
+            cx={x}
+            cy={y}
+            r="4"
+            class={`chart-marker series-${item.key}`}
+          />
+        );
+      })
+    }
+    {
+      [0, 25, 50, 75, 100].map((day) => (
+        <text
+          data-x-tick={day}
+          x={position({ x: day, y: 0 }, plot).x}
+          y={plot.height - 8}
+          text-anchor="middle"
+        >
+          {day}
+        </text>
+      ))
+    }
+  </svg>
+</div>

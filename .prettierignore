@@ -1,6 +1,7 @@
 dist/
 .astro/
 node_modules/
+.private/
 pnpm-lock.yaml
 # Post bodies are kept exactly as written.
 src/content/
