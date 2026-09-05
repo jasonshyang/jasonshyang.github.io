@@ -1,0 +1,16 @@
+---
+import { site } from '../data/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title={`Page not found — ${site.name}`}>
+  <main id="main-content" class="page container not-found" tabindex="-1">
+    <div class="eyebrow">404</div>
+    <h1 class="display">That page isn’t here.</h1>
+    <p>The link may be out of date, or the address mistyped.</p>
+    <div class="button-row">
+      <a class="button primary" href="/">Go home</a>
+      <a class="button secondary" href="/posts/">Browse the writing</a>
+    </div>
+  </main>
+</BaseLayout>

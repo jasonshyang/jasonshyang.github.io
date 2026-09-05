@@ -1,0 +1,20 @@
+---
+// The icon shown is the theme you would switch to; CSS swaps it based on the
+// `data-theme` attribute on <html>, so it is correct before any script runs.
+import Icon from './Icon.astro';
+---
+
+<button
+  class="theme-button"
+  type="button"
+  data-theme-toggle
+  aria-label="Switch colour theme"
+  title="Switch colour theme"
+>
+  <Icon name="sun" size={17} class="theme-icon theme-icon-sun" />
+  <Icon name="moon" size={17} class="theme-icon theme-icon-moon" />
+</button>
+
+<script>
+  import '../scripts/theme';
+</script>

@@ -1,0 +1,85 @@
+---
+import { Image } from 'astro:assets';
+import '../styles/prose.css';
+import avatar from '../assets/avatar.png';
+import { site } from '../data/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title={`About — ${site.name}`}
+  description="Jason Yang is a protocol engineer at Solstice Labs, building Solana programs and Rust services after a decade in financial products at JPMorgan and HSBC."
+>
+  <main id="main-content" class="page container about-page" tabindex="-1">
+    <section class="intro" aria-labelledby="about-heading">
+      <div class="avatar-ring">
+        <Image
+          class="avatar intro-avatar"
+          src={avatar}
+          alt={`Portrait of ${site.name}`}
+          width={96}
+          height={96}
+          densities={[1, 2]}
+          loading="eager"
+        />
+      </div>
+      <div class="intro-copy">
+        <div class="status-pill"><span class="status-dot"></span>{site.status}</div>
+        <h1 id="about-heading" class="display">Hi, I’m Jason.</h1>
+      </div>
+    </section>
+
+    <div class="article-prose about-prose">
+      <p>
+        I’m a Rust engineer at Solstice Labs, based in the UK. I design and build Solana programs in
+        Rust and the backend services that keep them running. Before engineering I spent a decade in
+        financial products at JPMorgan and HSBC, which still shapes how I think about the systems I
+        build: the hard part is usually deciding how a financial system should behave and how to
+        secure it, not just how to implement it.
+      </p>
+
+      <h2 id="what-i-do">What I do</h2>
+      <ul>
+        <li>
+          Design and implement Solana programs in Rust and Anchor: a stablecoin, a yield vault and a
+          tranching platform, taken from financial concept through external audits to mainnet.
+        </li>
+        <li>
+          Build and operate the Rust services around them: protocol APIs, indexing, price feeds,
+          automated yield distribution and monitoring.
+        </li>
+        <li>
+          Write the specifications, accounting models and threat models before the code, and the
+          property-based tests after it.
+        </li>
+      </ul>
+
+      <h2 id="background">Background</h2>
+      <p>
+        Before Solstice I was a Senior Vice President in product development at JPMorgan Chase,
+        owning the financial rules for a launched credit card product, and spent nine years at HSBC
+        in global cards product management and business planning. I hold a Master’s in Finance from
+        The University of Manchester and a Bachelor’s in Finance from Sun Yat-sen University.
+      </p>
+
+      <h2 id="what-i-work-with">What I work with</h2>
+      <p>
+        Rust day to day, occasionally Typescript and Python, with PostgreSQL and gRPC on the backend
+        and Solana and Anchor on chain.
+      </p>
+
+      <h2 id="this-site">This site</h2>
+      <p>
+        I use small Rust experiments to work through ideas and write up what I learn. Most posts are
+        about Rust internals, systems programming and the mechanics behind financial protocols.
+      </p>
+
+      <h2 id="get-in-touch">Get in touch</h2>
+      <p>
+        <a href={site.linkedin} rel="noopener noreferrer" target="_blank">LinkedIn</a> is the best place
+        to start a conversation. My code is on
+        <a href={site.github} rel="noopener noreferrer" target="_blank">GitHub</a>.
+      </p>
+    </div>
+  </main>
+</BaseLayout>

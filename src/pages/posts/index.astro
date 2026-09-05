@@ -1,0 +1,65 @@
+---
+import PostRow from '../../components/PostRow.astro';
+import { site } from '../../data/site';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupByYear, tagCounts } from '../../lib/posts';
+
+const posts = await getPosts();
+const tags = tagCounts(posts);
+const groups = groupByYear(posts);
+let index = 0;
+---
+
+<BaseLayout
+  title={`Writing — ${site.name}`}
+  description="Notes on Rust, systems and the mechanics behind financial protocols."
+>
+  <main id="main-content" class="page container writing-page" tabindex="-1">
+    <header class="page-head">
+      <div class="eyebrow">Writing</div>
+      <h1 class="display">Notes on how things work</h1>
+      <p>
+        Rust, systems and the mechanics behind financial protocols. Some posts are deep dives;
+        others are experiments I used to understand a concept.
+      </p>
+    </header>
+
+    <div class="tag-row" data-filter-ui hidden role="group" aria-label="Filter by topic">
+      <button class="tag-button" type="button" data-tag="" aria-pressed="true">
+        All <span>{posts.length}</span>
+      </button>
+      {
+        tags.map((tag) => (
+          <button class="tag-button" type="button" data-tag={tag.name} aria-pressed="false">
+            {tag.name}
+            <span>{tag.count}</span>
+          </button>
+        ))
+      }
+    </div>
+    <p class="result-count" id="result-count" aria-live="polite" data-filter-ui hidden></p>
+
+    <div class="year-groups">
+      {
+        groups.map(({ year, posts: yearPosts }) => (
+          <section class="year-group" data-year-group aria-labelledby={`year-${year}`}>
+            <h2 class="year-heading" id={`year-${year}`}>
+              {year}
+            </h2>
+            <ul class="post-list">
+              {yearPosts.map((post) => (
+                <PostRow post={post} index={index++} dateFormat="short" />
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+
+    <p class="empty-state" id="empty-state" hidden>Nothing with that tag yet.</p>
+  </main>
+</BaseLayout>
+
+<script>
+  import '../../scripts/filters';
+</script>

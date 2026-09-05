@@ -1,0 +1,26 @@
+---
+import { navigation, site } from '../data/site';
+import ThemeToggle from './ThemeToggle.astro';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label={`${site.name} — home`}>
+      <span class="brand-mark" aria-hidden="true">{site.initials}</span>
+      <span class="brand-name">{site.name}</span>
+    </a>
+    <nav class="main-nav" aria-label="Main">
+      {
+        navigation.map(({ label, href }) => (
+          <a href={href} aria-current={isCurrent(href) ? 'page' : undefined}>
+            {label}
+          </a>
+        ))
+      }
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>

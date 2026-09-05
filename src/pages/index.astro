@@ -1,0 +1,67 @@
+---
+import { Image } from 'astro:assets';
+import avatar from '../assets/avatar.png';
+import FeaturedPost from '../components/FeaturedPost.astro';
+import Icon from '../components/Icon.astro';
+import PostRow from '../components/PostRow.astro';
+import { site } from '../data/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPosts, tagCounts } from '../lib/posts';
+
+const posts = await getPosts();
+const [latest, ...rest] = posts;
+const recent = rest.slice(0, 5);
+const topics = tagCounts(posts).length;
+const firstYear = posts.at(-1)?.data.date.getUTCFullYear();
+---
+
+<BaseLayout title={site.title}>
+  <main id="main-content" class="page container home-page" tabindex="-1">
+    <section class="intro" aria-labelledby="intro-heading">
+      <div class="avatar-ring">
+        <Image
+          class="avatar intro-avatar"
+          src={avatar}
+          alt={`Portrait of ${site.name}`}
+          width={96}
+          height={96}
+          densities={[1, 2]}
+          loading="eager"
+        />
+      </div>
+      <div class="intro-copy">
+        <div class="status-pill"><span class="status-dot"></span>{site.status}</div>
+        <h1 id="intro-heading" class="display">Hey, I’m Jason.</h1>
+        <p>
+          I build financial systems in Rust: Solana programs and the services around them. This is
+          where I write up what I learn about Rust, systems and DeFi mechanics.
+        </p>
+        <div class="intro-footer">
+          <p class="intro-stats">
+            <strong>{posts.length}</strong> posts · <strong>{topics}</strong> topics · since
+            <strong>{firstYear}</strong>
+          </p>
+          <div class="social-links">
+            <a href={site.github} rel="noopener noreferrer" target="_blank">
+              <Icon name="github" size={16} /> GitHub
+            </a>
+            <a href={site.linkedin} rel="noopener noreferrer" target="_blank">
+              <Icon name="linkedin" size={15} /> LinkedIn
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-writing" aria-labelledby="latest-heading">
+      <div class="section-head">
+        <h2 id="latest-heading">Writing</h2>
+        <a class="text-link" href="/posts/">View all <Icon name="arrow" size={15} /></a>
+      </div>
+      {latest && <FeaturedPost post={latest} />}
+      <ul class="post-list">
+        {recent.map((post, index) => <PostRow post={post} index={index} />)}
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
